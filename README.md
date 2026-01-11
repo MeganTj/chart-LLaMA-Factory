@@ -7,8 +7,10 @@ Run the following commands
 ```
 conda create --name chartref python=3.11
 pip install uv
-# Step 1: Install PyTorch with support for the specific CUDA version
-uv pip install vllm --torch-backend=cu124
+# Step 1: Install PyTorch with support for your CUDA version. Note that 
+# if you have CUDA < 12.6, you will not be able to use flash attention and
+# should intall it vllm a different environment for inference
+uv pip install vllm --torch-backend=cu126
 pip install google.generativeai qwen_vl_utils anthropic nvitop
 pip install wandb PyPDF2 pdf2image pandas
 pip install flash-attn==2.7.4.post1 --no-build-isolation

@@ -67,7 +67,7 @@ def parse_bbox_from_text(text):
 
 def compute_metrics(sample):
     # Convert prediction to bounding box
-    gt_bbox = json.loads(sample["label"])
+    gt_bbox = parse_bbox_from_text(sample["label"])
     predicted_bbox = parse_bbox_from_text(sample["predict"])
     if predicted_bbox is not None:
         iou = calc_iou(gt_bbox, predicted_bbox)
