@@ -5,9 +5,9 @@ Codebase for finetuning MLLMs on ChartRef
 ## Conda environment
 Run the following commands
 ```
-conda create --name chartref2 python=3.11
+conda create --name chartref python=3.11
 pip install uv
-# Step 1: Install PyTorch with CUDA 12.4 support 
+# Step 1: Install PyTorch with support for the specific CUDA version
 uv pip install vllm --torch-backend=cu124
 pip install google.generativeai qwen_vl_utils anthropic nvitop
 pip install wandb PyPDF2 pdf2image pandas
@@ -19,6 +19,8 @@ pip install -e ".[torch,metrics]"
 ```
 
 ## SFT Pipeline
+
+Unzip the `images` directory and move `chartref_sft` to `data`.
 
 Set the `output_dir`in the yaml file to your local directory.
 ```
