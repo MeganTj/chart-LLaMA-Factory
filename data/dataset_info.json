@@ -23,6 +23,33 @@
       "messages": "conversations",
       "tools": "tools"
     }
+  },"qwen3vl_chartref": {
+    "file_name": "chartref_sft/qwen3vl_questions_train_sft.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "messages",
+      "images": "images"
+    },
+    "tags": {
+      "role_tag": "role",
+      "content_tag": "content",
+      "user_tag": "user",
+      "assistant_tag": "assistant"
+    }
+  },
+  "qwen3vl_chartref_test": {
+    "file_name": "chartref_sft/qwen3vl_questions_test_sft.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "messages",
+      "images": "images"
+    },
+    "tags": {
+      "role_tag": "role",
+      "content_tag": "content",
+      "user_tag": "user",
+      "assistant_tag": "assistant"
+    }
   },
   "mllm_demo": {
     "file_name": "mllm_demo.json",
