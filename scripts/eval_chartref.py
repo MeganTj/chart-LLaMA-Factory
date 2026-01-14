@@ -14,6 +14,7 @@
 
 import json
 import logging
+import os
 import time
 
 import fire
@@ -77,18 +78,36 @@ def compute_metrics(sample):
         return {"iou": 0.0, "acc": 0.0}
 
 
-def main(filename: str):
+def main(filename: str,
+         save_name: str = "predictions_score.json"):
     start_time = time.time()
     dataset = load_dataset("json", data_files=filename, split="train")
-    dataset = dataset.map(compute_metrics, num_proc=8, remove_columns=dataset.column_names)
-    score_dict = dataset.to_dict()
 
+    # Keep chart_type column instead of removing all columns
+    metrics = dataset.map(compute_metrics, num_proc=8, remove_columns=[col for col in dataset.column_names if col != "filename"])
+
+    # Convert to pandas for easier grouping
+    import pandas as pd
+    df = pd.DataFrame(metrics.to_dict())
+    df["chart_type"] = df["filename"].map(lambda x: os.path.basename(x).split("_")[0])
+    df = df.drop(columns=["filename"], axis=1)
+    
+    # Overall metrics (your original code)
+    print("\nOverall metrics:")
     average_score = {}
-    for task, scores in sorted(score_dict.items(), key=lambda x: x[0]):
-        print(f"{task}: {sum(scores) / len(scores):.4f}")
-        average_score[task] = sum(scores) / len(scores)
+    for task in [col for col in df.columns if col != "chart_type"]:
+        print(f"{task}: {df[task].mean():.4f}")
+        average_score[task] = df[task].mean()
 
-    with open("predictions_score.json", "w", encoding="utf-8") as f:
+    # Metrics by chart_type
+    print("\nMetrics by chart_type:")
+    for chart_type in sorted(df['chart_type'].unique()):
+        print(f"\n{chart_type}:")
+        subset = df[df['chart_type'] == chart_type]
+        for task in [col for col in df.columns if col != "chart_type"]:
+            print(f"  {task}: {subset[task].mean():.4f}")
+            
+    with open(save_name, "w", encoding="utf-8") as f:
         json.dump(average_score, f, indent=4)
 
     print(f"\nDone in {time.time() - start_time:.3f}s.\nScore file saved to predictions_score.json")

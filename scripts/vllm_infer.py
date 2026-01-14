@@ -14,6 +14,7 @@
 
 import gc
 import json
+import os
 
 import av
 import fire
@@ -54,14 +55,14 @@ def vllm_infer(
     temperature: float = 0.95,
     top_p: float = 0.7,
     top_k: int = 50,
-    max_new_tokens: int = 1024,
+    max_new_tokens: int = 8192,
     repetition_penalty: float = 1.0,
     skip_special_tokens: bool = True,
     default_system: str | None = None,
     enable_thinking: bool = True,
     seed: int | None = None,
     pipeline_parallel_size: int = 1,
-    image_max_pixels: int = 768 * 768,
+    image_max_pixels: int = 1478656,
     image_min_pixels: int = 32 * 32,
     video_fps: float = 2.0,
     video_maxlen: int = 128,
@@ -139,7 +140,7 @@ def vllm_infer(
         lora_request = None
 
     # Store all results in these lists
-    all_prompts, all_preds, all_labels = [], [], []
+    all_prompts, all_preds, all_labels, all_filenames = [], [], [],[]
     need_video_kwargs = _need_video_kwargs(template)
 
     # Add batch process to avoid the issue of too many files opened
@@ -149,7 +150,17 @@ def vllm_infer(
 
         for j in range(len(batch["input_ids"])):
             if batch["images"][j] is not None:
+                # print(batch["images"])
                 image = batch["images"][j]
+                if isinstance(image, list):
+                    image_path = image[0]  # Take first image if multiple
+            
+                    # Extract filename and get chart_type (everything before first underscore)
+                    filename = os.path.basename(image_path)
+                    all_filenames.append(filename)
+                else:
+                    raise NotImplementedError
+                
                 multi_modal_data = {
                     "image": template_obj.mm_plugin._regularize_images(
                         image, image_max_pixels=image_max_pixels, image_min_pixels=image_min_pixels
@@ -220,8 +231,8 @@ def vllm_infer(
 
     # Write all results at once outside the loop
     with open(save_name, "w", encoding="utf-8") as f:
-        for text, pred, label in zip(all_prompts, all_preds, all_labels):
-            f.write(json.dumps({"prompt": text, "predict": pred, "label": label}, ensure_ascii=False) + "\n")
+        for text, pred, label, filename in zip(all_prompts, all_preds, all_labels, all_filenames):
+            f.write(json.dumps({"prompt": text, "predict": pred, "label": label, "filename": filename}, ensure_ascii=False) + "\n")
 
     print("*" * 70)
     print(f"{len(all_prompts)} total generated results have been saved at {save_name}.")
